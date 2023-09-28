@@ -5,9 +5,9 @@ Package up RKE2 airgap files and install scripts into a single tarball. On the t
 ## Quickstart
 
 ```sh
-make build # creates a cluster-package-vX.Y.Z.tar.gz file
+curl | wget https://github.com/bobsled-dev/cluster/releases/download/vx.y.z/cluster-package-vx.y.z.tar.gz
 # move the file to the target machine
-tar -xzf cluster-package-vX.Y.Z.tar.gz
+tar -xf cluster-package-vX.Y.Z.tar.gz
 sudo su
 rke2-install.sh ... #
 ```

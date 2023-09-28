@@ -6,6 +6,7 @@ usage() {
     echo "  -s  [string_val] cluster server join ip (Ex. 10.0.0.1)"
     echo "  -a               agent flag"
     echo "  -u  [string_val] default user for Kube config (default: user)"
+    echo "  -u  [string_val] Network Device name (i.e. eth0, ens3, ens160)"
     echo "  -v               Verbose information about RKE2 installation"
     echo "  -d               Print Debug information"
     echo "EXAMPLE Usage: "
@@ -61,12 +62,13 @@ fi
 debug=0
 user="user"
 
-while getopts "t:s:au:vd" o; do
+while getopts "t:s:au:n:vd" o; do
     case "${o}" in
     t) token="${OPTARG}" ;;
     s) server_ip="${OPTARG}" ;;
     a) agent=1 ;;
     u) user="${OPTARG}" ;;
+    n) network_device="${OPTARG}" ;;
     d) debug=1 ;;
     v) verbose_docs ;;
     *) usage ;;
@@ -110,7 +112,7 @@ disable:
 token: "$token"
 EOF
 
-if [ $server_ip != $node_ip ]; then
+if [ "$server_ip" != "$node_ip" ]; then
     debug "Updating Config file with Cluster Join Server IP"
     echo "server: https://${server_ip}:9345" | sudo tee -a $config_dir/config.yaml >/dev/null
 fi
@@ -127,16 +129,17 @@ else
     sudo systemctl start rke2-agent.service
 fi
 
-if [ $server_ip == $node_ip ]; then
+if [ "$server_ip" = "$node_ip" ]; then
     debug "Copying kubeconfig to user home directory"
     kube_dir=/home/$user/.kube
     mkdir -p $kube_dir
-    sudo cp /etc/rancher/rke2/rke2.yaml $kube_dir/config
-    sudo chown $user:$user $kube_dir/config
+    kube_config=$kube_dir/config
+    sudo cp /etc/rancher/rke2/rke2.yaml $kube_config
+    sudo chown $user:$user $kube_config
 
     info "Adding local-path-storage"
-    /var/lib/rancher/rke2/bin/kubectl --kubeconfig=/home/user/.kube/config apply -f local-path-storage.yaml
-    /var/lib/rancher/rke2/bin/kubectl --kubeconfig=/home/user/.kube/config patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
+    /var/lib/rancher/rke2/bin/kubectl --kubeconfig=$kube_config apply -f local-path-storage.yaml
+    /var/lib/rancher/rke2/bin/kubectl --kubeconfig=$kube_config patch storageclass local-path -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'
 fi
 
 
