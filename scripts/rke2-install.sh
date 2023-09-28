@@ -6,7 +6,7 @@ usage() {
     echo "  -s  [string_val] cluster server join ip (Ex. 10.0.0.1)"
     echo "  -a               agent flag"
     echo "  -u  [string_val] default user for Kube config (default: user)"
-    echo "  -u  [string_val] Network Device name (i.e. eth0, ens3, ens160)"
+    echo "  -n  [string_val] Network Device name (i.e. eth0, ens3, ens160)"
     echo "  -v               Verbose information about RKE2 installation"
     echo "  -d               Print Debug information"
     echo "EXAMPLE Usage: "
@@ -88,7 +88,7 @@ cp local-path-storage.yaml $artifacts_dir
 
 info "Preparing Installation"
 
-node_ip=$(ip addr show eth0 | awk '/inet / {print $2}' | cut -d '/' -f1)
+node_ip=$(ip addr show $network_device | awk '/inet / {print $2}' | cut -d '/' -f1)
 if [ -z $server_ip ]; then
     info "Server Join IP not provided, this is the first node in the cluster"
     server_ip=$node_ip
